@@ -1,3 +1,4 @@
+import traceback
 import argparse
 import cv2
 import tensorflow as tf
@@ -120,4 +121,4 @@ if __name__ == '__main__':
     try:
         main(ap.parse_args())
     except Exception as e:
-        pass
+        traceback.print_exc()
