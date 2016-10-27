@@ -76,7 +76,7 @@ class BaseModel(object):
         self.valid_s_t_plus_1 = None
         self.valid_terminal = None
 
-        self.avg_reward_per_ep_history = np.zeros(np.ceil((self.max_steps - self.learn_start) / self.eval_freq),
+        self.avg_reward_per_ep_history = np.zeros(int(np.ceil((self.max_steps - self.learn_start) / self.eval_freq)),
                                                   dtype=np.float16)
         self.v_history = []
         self.td_history = []
@@ -174,7 +174,7 @@ class BaseModel(object):
         if n_episodes == 0:
             n_episodes += 1
         else:
-            avg_reward_per_ep /= n_episodes  # average reward per episode
+            avg_reward_per_ep = total_reward / n_episodes  # average reward per episode
 
         if eval_count == 0 or avg_reward_per_ep > np.max(self.avg_reward_per_ep_history):
             w = self.sess.run(self.w.values())
