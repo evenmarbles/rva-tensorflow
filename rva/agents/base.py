@@ -65,6 +65,9 @@ class BaseModel(object):
         self.memory = ReplayMemory(args, self.model_dir, full_history)
 
         # NEW NEW NEW
+        self.loss_value = np.inf
+        self.progress_freq = .5 * args.scale    # 5000
+
         self.eval_freq = args.eval_freq
         self.eval_steps = args.eval_steps
 
@@ -111,7 +114,8 @@ class BaseModel(object):
         eval_count = 0
 
         start_time = time.time()
-        for self.step in tqdm(range(start_step, self.max_steps), ncols=70, initial=start_step):
+        print('Learn start...')
+        for self.step in range(start_step, self.max_steps):
             # 1. predict
             action = self.predict(self.get_state(screen))
             # 2. act
@@ -122,7 +126,16 @@ class BaseModel(object):
             if terminal:
                 screen, reward, action, terminal = self.env.new_random_game()
 
+            if self.step < self.learn_start:
+                if self.step % self.progress_freq == 0:
+                    duration = time.time() - start_time
+                    print('Step %d: (%.3f sec)' % (self.step, duration))
+
             if self.step > self.learn_start:
+                if self.step % self.progress_freq == 0:
+                    duration = time.time() - start_time
+                    print('Step %d: loss = %.2f (%.3f sec)' % (self.step, self.loss_value, duration))
+
                 if self.step == self.learn_start + 1:
                     train_time = time.time() - start_time
                     self.sample_validation_data()
@@ -347,11 +360,11 @@ class BaseModel(object):
             return
 
         s_t, action, reward, s_t_plus_1, terminal = self.memory.sample()
-        _, q_t, loss, summary_str = self.get_q_update(s_t, action, reward, s_t_plus_1, terminal,
-                                                      [self.optim, self.q, self.loss, self.q_summary])
+        _, q_t, self.loss_value, summary_str = self.get_q_update(s_t, action, reward, s_t_plus_1, terminal,
+                                                                 [self.optim, self.q, self.loss, self.q_summary])
 
         self.writer.add_summary(summary_str, self.step)
-        self.total_loss += loss
+        self.total_loss += self.loss_value
         self.total_q += q_t.mean()
         self.update_count += 1
 
