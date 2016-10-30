@@ -6,7 +6,6 @@ import pickle
 
 import tensorflow as tf
 import numpy as np
-from tqdm import tqdm
 
 from ..replay_memory import ReplayMemory
 from ..utils import save_pkl, load_pkl
@@ -261,6 +260,7 @@ class BaseModel(object):
 
         self.init_history(screen)
 
+        from tqdm import tqdm
         for self.step in tqdm(range(start_step, self.max_steps), ncols=70, initial=start_step):
             if self.step == self.learn_start:
                 num_game, self.update_count, ep_reward = 0, 0, 0.
