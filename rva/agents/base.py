@@ -65,7 +65,7 @@ class BaseModel(object):
 
         # NEW NEW NEW
         self.loss_value = np.inf
-        self.progress_freq = .5 * args.scale    # 5000
+        self.progress_freq = .5 * args.scale  # 5000
 
         self.eval_freq = args.eval_freq
         self.eval_steps = args.eval_steps
@@ -113,7 +113,6 @@ class BaseModel(object):
         eval_count = 0
 
         start_time = time.time()
-        print('Learn start...')
         for self.step in range(start_step, self.max_steps):
             # 1. predict
             action = self.predict(self.get_state(screen))
@@ -125,16 +124,14 @@ class BaseModel(object):
             if terminal:
                 screen, reward, action, terminal = self.env.new_random_game()
 
-            if self.step < self.learn_start:
-                if self.step % self.progress_freq == 0:
-                    duration = time.time() - start_time
+            if self.step % self.progress_freq == 0:
+                duration = time.time() - start_time
+                if self.step <= self.learn_start:
                     print('Step %d: (%.3f sec)' % (self.step, duration))
-
-            if self.step > self.learn_start:
-                if self.step % self.progress_freq == 0:
-                    duration = time.time() - start_time
+                else:
                     print('Step %d: loss = %.2f (%.3f sec)' % (self.step, self.loss_value, duration))
 
+            if self.step > self.learn_start:
                 if self.step == self.learn_start + 1:
                     train_time = time.time() - start_time
                     self.sample_validation_data()
@@ -211,11 +208,10 @@ class BaseModel(object):
         except:
             max_ep_reward, min_ep_reward, avg_ep_reward = 0, 0, 0
 
-        print('\navg_r: %.4f, avg_l: %.6f, avg_q: %3.6f, avg_ep_r: %.4f, '
-              'max_ep_r: %.4f, min_ep_r: %.4f, avg_r_per_ep: %.4f, # game: %d' % (avg_reward, avg_loss, avg_q,
-                                                                                  avg_ep_reward, max_ep_reward,
-                                                                                  min_ep_reward, avg_reward_per_ep,
-                                                                                  n_episodes))
+        print('\nEpisode %d: avg_r: %.4f, avg_l: %.6f, avg_q: %3.6f, avg_ep_r: %.4f, '
+              'max_ep_r: %.4f, min_ep_r: %.4f, avg_r_per_ep: %.4f, # game: %d' % (
+                  eval_count, avg_reward, avg_loss, avg_q, avg_ep_reward, max_ep_reward, min_ep_reward,
+                  avg_reward_per_ep, n_episodes))
 
         # save model
         self.step_assign_op.eval({self.step_input: self.step + 1})
