@@ -447,6 +447,8 @@ class BaseModel(object):
         if not render:
             self.env.start_monitor()
 
+        from tqdm import tqdm
+
         best_reward, best_idx = 0, 0
         for idx in range(n_episode):
             screen, reward, action, terminal = self.env.new_random_game()

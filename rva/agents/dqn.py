@@ -1,5 +1,4 @@
 import numpy as np
-from tqdm import tqdm
 import tensorflow as tf
 
 from .. import activations
@@ -223,6 +222,8 @@ class DQNAgent(BaseModel):
 
         if not render:
             self.env.start_monitor()
+
+        from tqdm import tqdm
 
         best_reward, best_idx = 0, 0
         for idx in range(n_episode):
