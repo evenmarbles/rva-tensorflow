@@ -1,8 +1,12 @@
-import traceback
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import os
+import sys
 import argparse
-import cv2
+import traceback
 import tensorflow as tf
-# from tqdm import tqdm
 
 from rva.utils import load_config
 from rva.agents.dqn import DQNAgent
@@ -20,6 +24,36 @@ _agents = {
 }
 
 
+def parse_arguments(argv):
+    parser = argparse.ArgumentParser()
+    # parser.add_argument('--train_data_paths', type=str, action='append')
+    # parser.add_argument('--eval_data_paths', type=str, action='append')
+    # parser.add_argument('--metadata_path', type=str)
+    # parser.add_argument('--output_path', type=str)
+    # parser.add_argument('--max_steps', type=int, default=5000)
+    # parser.add_argument('--layer1_size', type=int, default=20)
+    # parser.add_argument('--layer2_size', type=int, default=10)
+    # parser.add_argument('--learning_rate', type=float, default=0.01)
+    # parser.add_argument('--epsilon', type=float, default=0.0005)
+    # parser.add_argument('--batch_size', type=int, default=30)
+    # parser.add_argument('--eval_batch_size', type=int, default=30)
+    parser.add_argument('--is_train', action='store_false', help='If specified, the agent performs.')
+    parser.add_argument('--config', type=str, default='rva/configs/breakout_agent.cfg')
+    parser.add_argument('--agent', type=str, default='dqn')
+    parser.add_argument('--env_type', type=str, default='detail', choices=['simple', 'detail'])
+    parser.add_argument('--env_name', type=str, default='Breakout-v0', help='The environment name.')
+    parser.add_argument('--screen_height', type=int, default=-1, help='The environment screen_height.')
+    parser.add_argument('--screen_width', type=int, default=-1, help='The environment screen width.')
+    parser.add_argument('--max_reward', type=float, default=1., help='The maximum reward.')
+    parser.add_argument('--min_reward', type=float, default=-1, help='The minimum reward.')
+    parser.add_argument('--random_start', type=int, default=30, help='The number of random starts.')
+    parser.add_argument('--action_repeat', action='store_false', help='Whether to repeat the action or not.')
+    parser.add_argument('--gray_scale', action='store_false', help='Whether the screen image is converted to grayscale.')
+    parser.add_argument('--display', action='store_true', help='Whether to display the environment or not.')
+    parser.add_argument('--gpu_fraction', type=str, default='1/1', help='idx / # of gpu fraction e.g. 1/3, 2/3, 3/3')
+    return parser.parse_args(args=argv[1:])
+
+
 def calc_gpu_fraction(fraction_string):
     idx, num = fraction_string.split('/')
     idx, num = float(idx), float(num)
@@ -29,9 +63,11 @@ def calc_gpu_fraction(fraction_string):
     return fraction
 
 
-def main(args):
-    config = load_config(args.config, args.agent)
-    # setattr(config, 'learning_rate_decay_step', mnist.train.num_examples // config.batch_size)
+def main(argv=None):
+    args = parse_arguments(sys.argv if argv is None else argv)
+
+    filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), args.config)
+    config = load_config(filepath, args.agent)
 
     if args.env_type == 'simple':
         env = SimpleGymEnvironment(args.env_name, args.env_type, args.screen_width, args.screen_height,
@@ -52,73 +88,8 @@ def main(args):
 
 
 if __name__ == '__main__':
-    ap = argparse.ArgumentParser(description='Train a Recurrent Model for Visual Attention')
-    ap.add_argument('--config', type=str, default='configs/breakout_agent.cfg', help='Path to configuration file.')
-    ap.add_argument('--agent', type=str, default='dqn', help='The name of the agent to run.')
-    ap.add_argument('--is_train', action='store_false', help='If specified, the agent performs.')
-    ap.add_argument('--env_type', type=str, default='detail', choices=['simple', 'detail'],
-                    help='The environment type: `simple` and `detail`.')
-    ap.add_argument('--env_name', type=str, default='Breakout-v0', help='The environment name.')
-    ap.add_argument('--screen_height', type=int, default=-1, help='The environment screen_height.')
-    ap.add_argument('--screen_width', type=int, default=-1, help='The environment screen width.')
-    ap.add_argument('--max_reward', type=float, default=1., help='The maximum reward.')
-    ap.add_argument('--min_reward', type=float, default=-1, help='The minimum reward.')
-    ap.add_argument('--random_start', type=int, default=30, help='The number of random starts.')
-    ap.add_argument('--action_repeat', action='store_false', help='Whether to repeat the action or not.')
-    ap.add_argument('--gray_scale', action='store_false', help='Whether the screen image is converted to grayscale.')
-    ap.add_argument('--display', action='store_true', help='Whether to display the environment or not.')
-    ap.add_argument('--gpu_fraction', type=str, default='1/1', help='idx / # of gpu fraction e.g. 1/3, 2/3, 3/3')
-    # ap.add_argument('--config', type=str, default='configs/mnist.py', help='Path to configuration file.')
-    # ap.add_argument('--batch_size', type=int, default=32, help='Number of examples per batch.')
-    # ap.add_argument('--learning_rate', type=float, default=1e-3, help='Learning rate at t=0.')
-    # ap.add_argument('--learning_rate_decay_factor', type=float, default=0.97,
-    #                 help='The factor at which the learning rate decays.')
-    # ap.add_argument('--num_epochs_per_decay', type=int, help='Epochs after which learning rate decays.')
-    # ap.add_argument('--min_learning_rate', default=1e-4, type=float, help='Minimum learning rate.')
-    # # ap.add_argument('--saturate_epoch', type=int,
-    # #                 help='Epoch at which linear decayed learning rate will reach minimum learning rate.')
-    # ap.add_argument('--max_grad_norm', type=float, help='Maximum gradient normal.')
-    # ap.add_argument('--max_epoch', type=int, default=2000, help='Maximum number of epochs to run.')
-    # ap.add_argument('--max_tries', type=int, default=100,
-    #                 help='Maximum number of epochs to try to find a better local minima for early-stopping.')
-    # ap.add_argument('--activation', type=str, default='relu', help='Activation function.')
-    # ap.add_argument('--monte_carlo_samples', type=int, default=10, help='Number of samples for monte carlo.')
-    # ap.add_argument('--verbosity', type=int, default=1, help='Increase output verbosity.')
-    #
-    # # glimpse layer
-    # ap.add_argument('--glimpse_patch_size', type=int, default=8,
-    #                 help='Size of glimpse patch at highest res (height = width).')
-    # ap.add_argument('--glimpse_depth', type=int, default=3, help='Number of concatenated downscaled patches.')
-    # ap.add_argument('--glimpse_scale', type=int, default=2,
-    #                 help='Scale of successive patches w.r.t. original input image.')
-    # ap.add_argument('--glimpse_hidden_size', type=int, default=128, help='Size of glimpse hidden layer.')
-    # ap.add_argument('--locator_hidden_size', type=int, default=128, help='Size of locator hidden layer.')
-    # ap.add_argument('--image_hidden_size', type=int, default=256,
-    #                 help='Size of hidden layer combining glimpse and locator hidden layers.')
-    #
-    # # reinforce
-    # ap.add_argument('--reward_scale', type=int, default=1, help='Scale of positive reward (negative is 0).')
-    # ap.add_argument('--unit_pixels', type=int, default=13,
-    #                 help='The locator unit (1,1) maps to pixels (13,13), or (-1,-1) maps to (-13,-13).')
-    # ap.add_argument('--locator_std', type=float, default=0.11,
-    #                 help='Stddev of gaussian location sampler (between 0 and 1) (low values may cause NaNs).')
-    # ap.add_argument('--stochastic', action='store_true',
-    #                 help='Reinforce modules forward inputs stochastically during evaluation.')
-    #
-    # # recurrent layer
-    # ap.add_argument('--rho', type=int, default=7, help='Back-propagate through time (BPTT) for rho time-steps.')
-    # ap.add_argument('--hidden_size', type=int, default=256, help='Number of hidden units used in Simple RNN.')
-    # ap.add_argument('--use_lstm', action='store_true', help='Use LSTM instead of linear layer.')
-    #
-    # # data
-    # ap.add_argument('--dataset', type=str, default='Mnist',
-    #                 help='Which dataset to use : Mnist | TranslatedMnist | etc.')
-    # ap.add_argument('--train_epoch_size', type=int, default=-1,
-    #                 help='Number of train examples seen between each epoch.')
-    # ap.add_argument('--valid_epoch_size', type=int, default=-1,
-    #                 help='Number of valid examples used for early stopping and cross-validation.')
-
+    tf.logging.set_verbosity(tf.logging.INFO)
     try:
-        main(ap.parse_args())
+        main()
     except Exception as e:
         traceback.print_exc()

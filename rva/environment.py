@@ -2,10 +2,12 @@
 from six.moves import range
 
 import sys
-import cv2
 import gym
 import random
 import numpy as np
+
+from skimage.color import rgb2gray
+from skimage.transform import resize
 
 from utils import get_time
 
@@ -56,13 +58,12 @@ class Environment(object):
     def screen(self):
         img = self._screen
         if self.dims != (-1, -1):
-            img = cv2.resize(img, self.dims)
+            img = resize(img, self.dims)
         if self.gray_scale:
-            img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) / 255.
+            img = rgb2gray(img)
             img = np.expand_dims(img, 2)
         img = np.transpose(img, [2, 0, 1])
         return img
-        # return cv2.resize(cv2.cvtColor(self._screen, cv2.COLOR_BGR2YCR_CB)/255., self.dims)[:,:,0]
 
     @property
     def observation_space(self):

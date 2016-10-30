@@ -55,19 +55,6 @@ class ReplayMemory:
         self.count = max(self.count, self.current + 1)
         self.current = (self.current + 1) % self.memory_size
 
-    # def getState(self, index):
-    #     assert self.count > 0, "replay memory is empty, use at least --random_steps 1"
-    #     # normalize index to expected range, allows negative indexes
-    #     index %= self.count
-    #     # if is not in the beginning of matrix
-    #     if index >= self.history_length - 1:
-    #         # use faster slicing
-    #         return self.screens[(index - (self.history_length - 1)):(index + 1), ...]
-    #     else:
-    #         # otherwise normalize indexes and use slower list based access
-    #         indexes = [(index - i) % self.count for i in reversed(range(self.history_length))]
-    #         return self.screens[indexes, ...]
-
     def get(self, index, container_type='state'):
         assert self.count > 0, "replay memory is empty, use at least --random_steps 1"
         container = {

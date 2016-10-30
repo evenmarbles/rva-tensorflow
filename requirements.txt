@@ -1,0 +1,4 @@
+six
+numpy
+scikit-image
+gym[atari]

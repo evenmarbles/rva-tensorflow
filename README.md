@@ -1,1 +1,1 @@
-# rva-tensorflow
+# Recurrent Visual Attention Models
